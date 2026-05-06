@@ -1,280 +1,99 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horários - Colégio 12 de Outubro</title>
-    <style>
-        :root {
-            --azul-header: #005c92; 
-            --azul-claro: #009ee2;  
-            --azul-intervalo-bg: #e1f5fe;
-            --cinza-prof: #888888;
-            --sugestao-cor: #cccccc;
-            --borda-tabela: #005c92;
-        }
-
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 20px; background: #f1f5f9; color: #1e293b; }
-
-        .header-escola { display: flex; justify-content: space-between; align-items: center; margin: 0 auto 25px auto; max-width: 950px; }
-        .badge-azul { background: var(--azul-header); color: white; padding: 8px 20px; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 12px; }
-        .titulo-central { color: var(--azul-header); font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; }
-        .badge-turma { background: var(--azul-claro); color: white; padding: 8px 20px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 2px solid transparent; outline: none; text-align: center; transition: 0.3s; width: 140px; }
-        .badge-turma:focus { background: white; color: var(--azul-header); border-color: var(--azul-header); }
-
-        .admin-bar { display: flex; gap: 8px; margin: 0 auto 15px auto; align-items: center; background: white; padding: 8px 15px; border-radius: 10px; max-width: 950px; border: 1px solid #e2e8f0; }
-        .tab-btn { padding: 6px 14px; border: none; cursor: pointer; font-weight: 600; border-radius: 6px; background: #e2e8f0; font-size: 11px; transition: 0.2s; }
-        .active-tab { background: var(--azul-header); color: white; }
-        .btn-print { background: #10b981; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: auto;}
-
-        .table-container { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 2px solid var(--borda-tabela); max-width: 950px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background: var(--azul-header); color: white; padding: 12px 5px; text-transform: uppercase; font-size: 11px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
-        
-        td { border: 1px solid #e2e8f0; text-align: center; height: 75px; vertical-align: middle; position: relative; padding: 0; }
-
-        .col-horario { background: var(--azul-claro) !important; color: white !important; font-weight: 700; width: 100px; font-size: 12px; line-height: 1.1; padding: 5px 0; }
-        .col-aula { background: #ffffff !important; color: var(--azul-claro) !important; font-weight: 700; width: 50px; font-size: 12px; }
-
-        .wrapper-edit { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; }
-        .materia-container { position: relative; width: 95%; display: flex; justify-content: center; }
-        
-        .editavel {
-            width: 100%; outline: none; padding: 0;
-            text-transform: uppercase; font-weight: 700; font-size: 12px; color: var(--azul-header);
-            z-index: 2; position: relative; background: transparent; line-height: 1.2;
-        }
-
-        .sugestao-fantasma {
-            position: absolute; width: 100%; text-align: center; color: var(--sugestao-cor); 
-            font-weight: 700; font-size: 12px; text-transform: uppercase; pointer-events: none; z-index: 1; top: 0;
-        }
-
-        .professor-input {
-            width: 90%; outline: none; border: none; text-align: center;
-            font-size: 9px; color: var(--cinza-prof); font-style: italic;
-            text-transform: uppercase; background: transparent; margin-top: 2px;
-        }
-
-        .is-interval { 
-            background-color: var(--azul-intervalo-bg) !important; 
-            color: var(--azul-header) !important; 
-            font-weight: 400; 
-            font-size: 12px; 
-            letter-spacing: 2px;
-            height: 30px !important;
-        }
-        .row-int { height: 30px !important; }
-
-        @media print {
-            .no-print, .sugestao-fantasma { display: none !important; }
-            body { padding: 0; background: white; }
-            .table-container { box-shadow: none; border-radius: 15px; border-width: 1.5pt; }
-            td { height: 65px; }
-            .is-interval, .row-int td { height: 25px !important; }
-            .col-horario { -webkit-print-color-adjust: exact; background-color: var(--azul-claro) !important; color: white !important; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="no-print admin-bar">
-    <button id="btn-manha" class="tab-btn active-tab" onclick="mudarTurno('manha')">MANHÃ</button>
-    <button id="btn-tarde" class="tab-btn" onclick="mudarTurno('tarde')">TARDE</button>
-    <span id="status-cloud" style="margin-left: 10px; font-size: 10px; color: #10b981; font-weight: bold;">● Conectado à Nuvem</span>
-    <button class="btn-print" onclick="window.print()">IMPRIMIR PDF</button>
-    <button onclick="limparTurmaAtual()" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:10px; font-weight: 600; margin-left: 10px;">RESETAR TURMA</button>
-</div>
-
-<div class="header-escola">
-    <div class="badge-azul">ANOS INICIAIS</div>
-    <div class="titulo-central">HORÁRIOS</div>
-    <input type="text" class="badge-turma" id="campo-turma" 
-           onkeydown="if(event.key==='Enter') this.blur()" 
-           onblur="trocarTurma(this.value)" 
-           placeholder="TURMA">
-</div>
-
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 100px;">HORÁRIOS</th>
-                <th style="width: 50px;">AULA</th>
-                <th>SEGUNDA</th>
-                <th>TERÇA</th>
-                <th>QUARTA</th>
-                <th>QUINTA</th>
-                <th>SEXTA</th>
-            </tr>
-        </thead>
-        <tbody id="corpo-grade"></tbody>
-    </table>
-</div>
-
-<!-- SCRIPTS DO FIREBASE -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB3sKvNdGuuEU9G-knryFWe2Xd39M5BL6M",
-      authDomain: "controle-de-horas-f1191.firebaseapp.com",
-      projectId: "controle-de-horas-f1191",
-      storageBucket: "controle-de-horas-f1191.firebasestorage.app",
-      messagingSenderId: "588890992228",
-      appId: "1:588890992228:web:1e5a529b49c285c7533971",
-      measurementId: "G-6BE5Z9ZWZP"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const materiasBase = ["PORTUGUÊS", "MATEMÁTICA", "CIÊNCIAS", "HISTÓRIA", "GEOGRAFIA", "INGLÊS", "ARTES", "ED. FÍSICA", "ENS. RELIGIOSO", "LITERATURA", "ROBÓTICA", "MÚSICA", "SOCIEDADE", "NATUREZA", "SOCIOEMOCIONAL"];
-    
-    window.turnoAtual = 'manha';
-    window.turmaAtiva = localStorage.getItem('ultima_turma_aberta') || "1º ANO A";
-    window.agenda = [];
-
-    async function carregarDados() {
-        document.getElementById('status-cloud').innerText = "○ Sincronizando...";
-        document.getElementById('status-cloud').style.color = "#f59e0b";
-        
-        try {
-            const docRef = doc(db, "turmas", window.turmaAtiva);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                window.agenda = docSnap.data().horarios || [];
-            } else {
-                window.agenda = [];
-            }
-            
-            document.getElementById('campo-turma').value = window.turmaAtiva;
-            renderizarGrade();
-            document.getElementById('status-cloud').innerText = "● Nuvem Atualizada";
-            document.getElementById('status-cloud').style.color = "#10b981";
-        } catch (e) {
-            console.error("Erro ao carregar:", e);
-            document.getElementById('status-cloud').innerText = "× Erro de Conexão";
-            document.getElementById('status-cloud').style.color = "#ef4444";
-        }
+<style>
+    :root {
+        --azul-header: #005c92; 
+        --azul-claro: #009ee2;  
+        --azul-intervalo-bg: #e1f5fe;
+        --cinza-prof: #888888;
+        --sugestao-cor: #cccccc;
+        --borda-tabela: #005c92;
     }
 
-    window.trocarTurma = function(novoNome) {
-        if (!novoNome.trim()) return;
-        window.turmaAtiva = novoNome.toUpperCase().trim();
-        localStorage.setItem('ultima_turma_aberta', window.turmaAtiva);
-        carregarDados();
+    /* Ajuste para não cortar o conteúdo em telas pequenas */
+    body { 
+        font-family: 'Inter', sans-serif; 
+        margin: 0; 
+        padding: 10px; /* Reduzido para mobile */
+        background: #f1f5f9; 
+        color: #1e293b; 
+        overflow-x: hidden; 
     }
 
-    window.mudarTurno = function(turno) {
-        window.turnoAtual = turno;
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active-tab', b.id.includes(turno)));
-        renderizarGrade();
+    /* --- CONTROLES RESPONSIVOS --- */
+    .admin-bar { 
+        display: flex; 
+        flex-wrap: wrap; /* Permite quebrar linha no celular */
+        gap: 8px; 
+        margin: 0 auto 15px auto; 
+        align-items: center; 
+        background: white; 
+        padding: 10px; 
+        border-radius: 10px; 
+        max-width: 950px; 
+        border: 1px solid #e2e8f0; 
     }
 
-    function renderizarGrade() {
-        const corpo = document.getElementById('corpo-grade');
-        corpo.innerHTML = "";
-        const config = {
-            manha: [{h:"07:10\nàs\n08:00",id:"0710",l:"1ª"},{h:"08:00\nàs\n08:50",id:"0800",l:"2ª"},{h:"08:50\nàs\n09:20",id:"0850",int:true},{h:"09:20\nàs\n10:10",id:"0920",l:"3ª"},{h:"10:10\nàs\n11:00",id:"1010",l:"4ª"},{h:"11:00\nàs\n11:40",id:"1100",l:"5ª"}],
-            tarde: [{h:"13:10\nàs\n14:00",id:"1310",l:"1ª"},{h:"14:00\nàs\n14:50",id:"1400",l:"2ª"},{h:"14:50\nàs\n15:20",id:"1450",int:true},{h:"15:20\nàs\n16:10",id:"1520",l:"3ª"},{h:"16:10\nàs\n17:00",id:"1610",l:"4ª"},{h:"17:00\nàs\n17:40",id:"1700",l:"5ª"}]
-        };
-
-        config[window.turnoAtual].forEach(item => {
-            let tr = document.createElement('tr');
-            if(item.int) tr.className = "row-int";
-            tr.innerHTML = `
-                <td class="col-horario">${item.h.replace(/\n/g,"<br>")}</td>
-                <td class="col-aula">${item.l || '---'}</td>
-                ${["Segunda","Terça","Quarta","Quinta","Sexta"].map(dia => {
-                    const aula = window.agenda.find(a => a.dia === dia && a.horaId === item.id && a.turno === window.turnoAtual);
-                    return `
-                    <td class="${item.int ? 'is-interval' : ''}">
-                        <div class="wrapper-edit">
-                            ${item.int ? 'INTERVALO' : `
-                                <div class="materia-container">
-                                    <div class="sugestao-fantasma" id="sug-${dia}-${item.id}"></div>
-                                    <div class="editavel" contenteditable="true" spellcheck="false"
-                                         data-dia="${dia}" data-id="${item.id}">${aula ? aula.materia : ''}</div>
-                                </div>
-                                <input type="text" class="professor-input" id="prof-${dia}-${item.id}" 
-                                       placeholder="..." value="${aula ? aula.prof : ''}">
-                            `}
-                        </div>
-                    </td>`;
-                }).join('')}
-            `;
-            corpo.appendChild(tr);
-        });
-
-        // Adiciona eventos após renderizar
-        document.querySelectorAll('.editavel').forEach(el => {
-            el.oninput = (e) => gerarSugestao(e.target);
-            el.onkeydown = (e) => navegarTeclado(e);
-            el.onblur = (e) => salvarDados(e.target.dataset.dia, e.target.dataset.id);
-        });
-        document.querySelectorAll('.professor-input').forEach(el => {
-            const [dia, id] = el.id.replace('prof-', '').split('-');
-            el.onblur = () => salvarDados(dia, id);
-        });
+    /* --- CABEÇALHO RESPONSIVO --- */
+    .header-escola { 
+        display: flex; 
+        flex-direction: column; /* Empilha no mobile por padrão */
+        gap: 10px;
+        align-items: center; 
+        margin: 0 auto 20px auto; 
+        max-width: 950px; 
     }
 
-    function gerarSugestao(el) {
-        const query = el.innerText.trim().toUpperCase();
-        const sugDiv = document.getElementById(`sug-${el.dataset.dia}-${el.dataset.id}`);
-        if (!query) { sugDiv.innerText = ""; return; }
-        const match = materiasBase.find(m => m.startsWith(query));
-        sugDiv.innerText = match || "";
+    @media (min-width: 600px) {
+        .header-escola { flex-direction: row; justify-content: space-between; }
+        body { padding: 20px; }
     }
 
-    function navegarTeclado(e) {
-        const el = e.target;
-        const sugDiv = document.getElementById(`sug-${el.dataset.dia}-${el.dataset.id}`);
-        if (e.key === "Tab" && sugDiv.innerText !== "") { 
-            e.preventDefault(); 
-            el.innerText = sugDiv.innerText; 
-            sugDiv.innerText = "";
-            document.getElementById(`prof-${el.dataset.dia}-${el.dataset.id}`).focus(); 
-        }
-        if (e.key === "Enter") { 
-            e.preventDefault(); 
-            document.getElementById(`prof-${el.dataset.dia}-${el.dataset.id}`).focus(); 
-        }
+    .titulo-central { 
+        color: var(--azul-header); 
+        font-size: clamp(18px, 5vw, 24px); /* Fonte diminui em telas menores */
+        font-weight: 900; 
+        letter-spacing: 2px; 
+        text-transform: uppercase; 
+        border-bottom: 2px solid #cbd5e1; 
+        padding-bottom: 5px; 
+        text-align: center;
     }
 
-    async function salvarDados(dia, id) {
-        const editEl = document.querySelector(`.editavel[data-dia="${dia}"][data-id="${id}"]`);
-        if (!editEl) return;
-        
-        const mat = editEl.innerText.trim().toUpperCase();
-        const prof = document.getElementById(`prof-${dia}-${id}`).value.trim().toUpperCase();
-        
-        window.agenda = window.agenda.filter(a => !(a.dia === dia && a.horaId === id && a.turno === window.turnoAtual));
-        if (mat) window.agenda.push({ materia: mat, prof: prof, dia, horaId: id, turno: window.turnoAtual });
-        
-        try {
-            await setDoc(doc(db, "turmas", window.turmaAtiva), {
-                horarios: window.agenda,
-                ultimaModificacao: new Date()
-            });
-            document.getElementById('status-cloud').innerText = "● Salvo na Nuvem";
-            document.getElementById('status-cloud').style.color = "#10b981";
-        } catch (e) {
-            console.error("Erro ao salvar:", e);
-        }
+    /* --- O SEGREDO: CONTAINER COM SCROLL --- */
+    .table-container { 
+        background: white; 
+        border-radius: 20px; 
+        border: 2px solid var(--borda-tabela); 
+        max-width: 950px; 
+        margin: auto; 
+        overflow-x: auto; /* Adiciona o scroll horizontal */
+        -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
     }
 
-    window.limparTurmaAtual = async function() { 
-        if(confirm(`Resetar horários da turma ${window.turmaAtiva}?`)) { 
-            window.agenda = []; 
-            await setDoc(doc(db, "turmas", window.turmaAtiva), { horarios: [] });
-            renderizarGrade(); 
-        } 
+    table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        min-width: 600px; /* Garante que a tabela não esmague menos que isso */
     }
 
-    carregarDados();
-</script>
-</body>
-</html>
+    /* Mantendo suas definições de fonte */
+    th { background: var(--azul-header); color: white; padding: 12px 5px; font-size: 11px; text-transform: uppercase; }
+    td { border: 1px solid #e2e8f0; text-align: center; height: 75px; vertical-align: middle; position: relative; }
+    .col-horario { background: var(--azul-claro) !important; color: white !important; font-weight: 700; width: 90px; font-size: 11px; }
+    .col-aula { background: #ffffff !important; color: var(--azul-claro) !important; font-weight: 700; width: 45px; font-size: 12px; }
+
+    /* Ajuste do Intervalo para não bugar o texto */
+    .is-interval { 
+        background-color: var(--azul-intervalo-bg) !important; 
+        color: var(--azul-header) !important; 
+        font-weight: 400; 
+        font-size: 11px; 
+        height: 35px !important; 
+        white-space: nowrap; /* Evita quebra de linha no texto Intervalo */
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+        .table-container { overflow: visible; border-radius: 0; }
+        table { min-width: 100%; }
+    }
+</style>
