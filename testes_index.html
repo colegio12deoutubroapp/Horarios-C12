@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horários - Colégio 12 de Outubro</title>
+    <style>
+        :root {
+            --azul-header: #005c92; 
+            --azul-claro: #009ee2;  
+            --azul-intervalo-bg: #e1f5fe;
+            --cinza-prof: #888888;
+            --borda-tabela: #005c92;
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 10px; background: #f1f5f9; color: #1e293b; }
+
+        /* --- NAVEGAÇÃO PRINCIPAL --- */
+        .nav-tabs { display: flex; justify-content: center; gap: 5px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .nav-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; background: #e2e8f0; color: #64748b; font-size: 13px; transition: 0.3s; }
+        .nav-btn.active { background: var(--azul-header); color: white; }
+
+        .section-view { display: none; }
+        .section-view.active { display: block; }
+
+        /* --- HEADER --- */
+        .header-escola { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .badge-azul { background: var(--azul-header); color: white; padding: 6px 15px; border-radius: 8px; font-weight: 700; font-size: 11px; }
+        .titulo-central { color: var(--azul-header); font-size: 20px; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid var(--azul-claro); padding-bottom: 5px; }
+
+        /* --- MODO ALIMENTAÇÃO (CARDS) --- */
+        .day-selector { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; scrollbar-width: none; }
+        .day-btn { padding: 8px 15px; border: 1px solid var(--azul-claro); background: white; color: var(--azul-claro); border-radius: 20px; font-weight: 700; white-space: nowrap; cursor: pointer; font-size: 12px; }
+        .day-btn.active { background: var(--azul-claro); color: white; }
+
+        .card-aula { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; border-left: 5px solid var(--azul-claro); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px; }
+        .card-time { font-weight: 800; color: var(--azul-header); font-size: 14px; }
+        .card-label { font-size: 12px; font-weight: 700; color: var(--azul-claro); }
+        
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+        .card-input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--azul-header); box-sizing: border-box; }
+
+        /* --- MODO GRADE (TABELA) --- */
+        .table-container { background: white; border-radius: 20px; overflow-x: auto; border: 2px solid var(--borda-tabela); }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: var(--azul-header); color: white; padding: 12px 5px; font-size: 11px; text-transform: uppercase; }
+        td { border: 1px solid #e2e8f0; text-align: center; height: 70px; font-size: 12px; }
+        .col-horario { background: var(--azul-claro) !important; color: white !important; font-weight: 700; width: 90px; }
+        .col-aula { font-weight: 800; color: var(--azul-claro); width: 45px; }
+        .cell-materia { font-weight: 700; color: var(--azul-header); text-transform: uppercase; }
+        .cell-prof { font-size: 9px; color: var(--cinza-prof); font-style: italic; display: block; }
+        .row-int { background: var(--azul-intervalo-bg); height: 30px !important; font-size: 11px; letter-spacing: 2px; color: var(--azul-header); }
+
+        /* Ajustes Finais */
+        .admin-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .status-dot { font-size: 10px; font-weight: 800; margin-left: auto; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .section-view { display: block !important; }
+            #section-alimentar { display: none !important; }
+            .table-container { overflow: visible; border: 1px solid black; }
+            table { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav-tabs no-print">
+    <button class="nav-btn active" onclick="switchTab('alimentar')">ALIMENTAR DADOS</button>
+    <button class="nav-btn" onclick="switchTab('visualizar')">VISUALIZAR GRADE</button>
+</nav>
+
+<div class="header-escola no-print">
+    <div class="badge-azul">ANOS INICIAIS</div>
+    <div class="titulo-central">COLÉGIO 12 DE OUTUBRO</div>
+    <input type="text" class="nav-btn" id="campo-turma" style="background: white; border: 1px solid #cbd5e1; max-width: 150px;" 
+           onblur="window.trocarTurma(this.value)" placeholder="TURMA">
+</div>
+
+<section id="section-alimentar" class="section-view active no-print">
+    <div class="admin-bar">
+        <button class="nav-btn" id="btn-manha" onclick="window.mudarTurno('manha')">MANHÃ</button>
+        <button class="nav-btn" id="btn-tarde" onclick="window.mudarTurno('tarde')">TARDE</button>
+        <div id="status-cloud" class="status-dot">● ONLINE</div>
+    </div>
+
+    <div class="day-selector" id="day-selector">
+        </div>
+
+    <div id="cards-container">
+        </div>
+</section>
+
+<section id="section-visualizar" class="section-view">
+    <div class="admin-bar no-print">
+        <button class="nav-btn" style="background: #10b981; color: white;" onclick="window.print()">IMPRIMIR PDF</button>
+        <button class="nav-btn" style="background: #ef4444; color: white;" onclick="window.limparTurmaAtual()">RESETAR</button>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>HORÁRIOS</th>
+                    <th>AULA</th>
+                    <th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th>
+                </tr>
+            </thead>
+            <tbody id="corpo-tabela">
+                </tbody>
+        </table>
+    </div>
+</section>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB3sKvNdGuuEU9G-knryFWe2Xd39M5BL6M",
+      authDomain: "controle-de-horas-f1191.firebaseapp.com",
+      projectId: "controle-de-horas-f1191",
+      storageBucket: "controle-de-horas-f1191.firebasestorage.app",
+      messagingSenderId: "588890992228",
+      appId: "1:588890992228:web:1e5a529b49c285c7533971"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+    const CONFIG_HORARIOS = {
+        manha: [{h:"07:10 às 08:00",id:"0710",l:"1ª"},{h:"08:00 às 08:50",id:"0800",l:"2ª"},{h:"08:50 às 09:20",id:"0850",int:true},{h:"09:20 às 10:10",id:"0920",l:"3ª"},{h:"10:10 às 11:00",id:"1010",l:"4ª"},{h:"11:00 às 11:40",id:"1100",l:"5ª"}],
+        tarde: [{h:"13:10 às 14:00",id:"1310",l:"1ª"},{h:"14:00 às 14:50",id:"1400",l:"2ª"},{h:"14:50 às 15:20",id:"1450",int:true},{h:"15:20 às 16:10",id:"1520",l:"3ª"},{h:"16:10 às 17:00",id:"1610",l:"4ª"},{h:"17:00 às 17:40",id:"1700",l:"5ª"}]
+    };
+
+    window.diaAtivo = "Segunda";
+    window.turnoAtual = 'manha';
+    window.turmaAtiva = localStorage.getItem('ultima_turma_aberta') || "1º ANO A";
+    window.agenda = [];
+
+    window.switchTab = (tab) => {
+        document.querySelectorAll('.section-view, .nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(`section-${tab}`).classList.add('active');
+        event.target.classList.add('active');
+        if(tab === 'visualizar') renderizarTabela();
+    };
+
+    async function carregarDados() {
+        const docSnap = await getDoc(doc(db, "turmas", window.turmaAtiva));
+        window.agenda = docSnap.exists() ? docSnap.data().horarios : [];
+        document.getElementById('campo-turma').value = window.turmaAtiva;
+        renderizarCards();
+    }
+
+    window.trocarTurma = (v) => { if(v) { window.turmaAtiva = v.toUpperCase(); localStorage.setItem('ultima_turma_aberta', v); carregarDados(); } };
+    window.mudarTurno = (t) => { window.turnoAtual = t; renderizarCards(); };
+
+    function renderizarCards() {
+        const selector = document.getElementById('day-selector');
+        selector.innerHTML = DIAS.map(d => `<button class="day-btn ${d===window.diaAtivo?'active':''}" onclick="setDia('${d}')">${d}</button>`).join('');
+        
+        const container = document.getElementById('cards-container');
+        container.innerHTML = CONFIG_HORARIOS[window.turnoAtual].filter(h => !h.int).map(h => {
+            const aula = window.agenda.find(a => a.dia === window.diaAtivo && a.horaId === h.id && a.turno === window.turnoAtual) || {};
+            return `
+                <div class="card-aula">
+                    <div class="card-header"><span class="card-time">${h.h}</span><span class="card-label">${h.l} Aula</span></div>
+                    <div class="input-group">
+                        <label>Disciplina / Matéria</label>
+                        <input type="text" class="card-input" value="${aula.materia||''}" 
+                               onblur="salvarItem('${h.id}', this.value, 'materia')">
+                    </div>
+                    <div class="input-group">
+                        <label>Nome do Professor</label>
+                        <input type="text" class="card-input" style="font-size:12px; color:var(--cinza-prof)" value="${aula.prof||''}" 
+                               onblur="salvarItem('${h.id}', this.value, 'prof')">
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.setDia = (d) => { window.diaAtivo = d; renderizarCards(); };
+
+    window.salvarItem = async (horaId, valor, campo) => {
+        let aula = window.agenda.find(a => a.dia === window.diaAtivo && a.horaId === horaId && a.turno === window.turnoAtual);
+        if(!aula) {
+            aula = { dia: window.diaAtivo, horaId, turno: window.turnoAtual, materia: '', prof: '' };
+            window.agenda.push(aula);
+        }
+        aula[campo] = valor.toUpperCase();
+        await setDoc(doc(db, "turmas", window.turmaAtiva), { horarios: window.agenda });
+    };
+
+    function renderizarTabela() {
+        const corpo = document.getElementById('corpo-tabela');
+        corpo.innerHTML = CONFIG_HORARIOS[window.turnoAtual].map(h => `
+            <tr class="${h.int?'row-int':''}">
+                <td class="col-horario">${h.h.replace(' às ', '<br>')}</td>
+                <td class="col-aula">${h.l||'--'}</td>
+                ${DIAS.map(d => {
+                    if(h.int) return d === "Segunda" ? `<td colspan="5">INTERVALO</td>` : '';
+                    const a = window.agenda.find(x => x.dia === d && x.horaId === h.id && x.turno === window.turnoAtual) || {};
+                    return `<td><span class="cell-materia">${a.materia||''}</span><span class="cell-prof">${a.prof||''}</span></td>`;
+                }).join('')}
+            </tr>
+        `).join('');
+    }
+
+    window.limparTurmaAtual = async () => { if(confirm('Resetar?')) { await setDoc(doc(db,"turmas",window.turmaAtiva),{horarios:[]}); carregarDados(); } };
+
+    carregarDados();
+</script>
+</body>
+</html>
