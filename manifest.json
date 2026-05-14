@@ -1,0 +1,21 @@
+{
+  "name": "Colégio 12 de Outubro - Horários",
+  "short_name": "Horários 12",
+  "description": "Sistema de gestão de horários escolares",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#005c92",
+  "theme_color": "#005c92",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192.png?text=12",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512.png?text=12",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
